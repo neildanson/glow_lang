@@ -1,8 +1,8 @@
-use crate::Function;
+use crate::FunctionDef;
 
 pub trait Compiler {
     type F;
-    fn compile(f : Function) -> Self::F;
+    fn compile(f : FunctionDef) -> Self::F;
 }
 
 pub trait Runtime {

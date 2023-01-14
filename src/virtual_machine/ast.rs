@@ -20,7 +20,7 @@ pub enum Expr {
     And(Box<Expr>, Box<Expr>),
 }
 
-pub struct Function {
+pub struct FunctionDef {
     pub name: String,
     pub body: Vec<Expr>,
 }

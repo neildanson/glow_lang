@@ -139,7 +139,7 @@ fn emit_body(exprs: &[Expr]) -> Vec<Instruction> {
     instructions
 }
 
-pub fn emit_function(function: &ast::Function) -> vm::Function {
+pub fn emit_function(function: &ast::FunctionDef) -> vm::Function {
     let body = emit_body(&function.body);
     vm::Function::new(Vec::new(), body)
 }
@@ -148,7 +148,7 @@ struct StackVM;
 
 impl Compiler for StackVM {
     type F = vm::Function;
-    fn compile(f : ast::Function) -> Self::F {
+    fn compile(f : ast::FunctionDef) -> Self::F {
         emit_function(&f)
     }
 }
