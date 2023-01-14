@@ -4,6 +4,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::collections::HashMap;
 
 use glow_lang::*;
+use glow_lang::virtual_machine::stack::vm::*;
 
 fn parse_success(c: &mut Criterion) {
     let any_number = any_of(&['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);

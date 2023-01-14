@@ -153,14 +153,14 @@ impl<'a> Parser<'a> for CharParser {
 }
 
 struct StringParser {
-    string: &'static str,
+    string: String,
 }
 
 impl<'a> Parser<'a> for StringParser {
-    type Output = &'static str;
-    fn parse(&self, input: String) -> ParseResult<&'static str> {
-        if let Some(value) = input.strip_prefix(self.string) {
-            Result::Ok((self.string, value.to_string()))
+    type Output = String;
+    fn parse(&self, input: String) -> ParseResult<String> {
+        if let Some(value) = input.strip_prefix(&self.string) {
+            Result::Ok((self.string.clone(), value.to_string()))
         } else {
             Result::Err(format!("Expected {}", self.string))
         }
@@ -364,8 +364,8 @@ pub fn pchar<'a>(c: char) -> RcParser<'a, char> {
     CharParser { c }.to_rc()
 }
 
-pub fn pstring<'a>(string: &'static str) -> RcParser<'a, &'static str> {
-    StringParser { string }.to_rc()
+pub fn pstring<'a>(string: String) -> RcParser<'a, String> {
+    StringParser { string : string.clone() }.to_rc()
 }
 
 pub fn choice<'a, Output: 'a>(parsers: Vec<RcParser<'a, Output>>) -> RcParser<'a, Output> {
@@ -396,16 +396,16 @@ mod tests {
 
     #[test]
     fn str_parse() {
-        let parse_hello = pstring("hello");
+        let parse_hello = pstring("hello".to_string());
         let result = parse_hello.parse("hello".to_string());
-        assert_eq!(result, Result::Ok(("hello", "".to_string())));
+        assert_eq!(result, Result::Ok(("hello".to_string(), "".to_string())));
     }
 
     #[test]
     fn str_parse_with_remaining() {
-        let parse_hello = pstring("hello");
+        let parse_hello = pstring("hello".to_string());
         let result = parse_hello.parse("helloworld".to_string());
-        assert_eq!(result, Result::Ok(("hello", "world".to_string())));
+        assert_eq!(result, Result::Ok(("hello".to_string(), "world".to_string())));
     }
 
     #[test]
@@ -505,12 +505,12 @@ mod tests {
 
     #[test]
     fn between_test() {
-        let foo = pstring("foo");
+        let foo = pstring("foo".to_string());
         let lparen = pchar('(');
         let rparen = pchar(')');
 
         let result = foo.between(lparen, rparen).parse("(foo)".to_string());
 
-        assert_eq!(result, Result::Ok(("foo", "".to_string())));
+        assert_eq!(result, Result::Ok(("foo".to_string(), "".to_string())));
     }
 }

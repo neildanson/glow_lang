@@ -1,4 +1,5 @@
-use crate::*;
+use crate::{*, interface::Compiler};
+use super::vm::*;
 
 fn append(instructions: &mut Vec<Instruction>, instructions_to_add: &[Instruction]) {
     let base_offset = instructions.len();
@@ -141,6 +142,15 @@ fn emit_body(exprs: &[Expr]) -> Vec<Instruction> {
 pub fn emit_function(function: &ast::Function) -> vm::Function {
     let body = emit_body(&function.body);
     vm::Function::new(Vec::new(), body)
+}
+
+struct StackVM;
+
+impl Compiler for StackVM {
+    type F = vm::Function;
+    fn compile(f : ast::Function) -> Self::F {
+        emit_function(&f)
+    }
 }
 
 #[cfg(test)]

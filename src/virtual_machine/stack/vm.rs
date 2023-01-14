@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use crate::interface::Runtime;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Values {
     Int(i32),
@@ -334,6 +336,14 @@ impl Program {
             }
         }
         stack_frame.return_value
+    }
+}
+
+impl Runtime for Program {
+    type F = Function;
+    fn run(&self, f : &Self::F) {
+        self.eval(f, &[]);
+
     }
 }
 
