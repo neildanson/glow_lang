@@ -341,9 +341,8 @@ impl Program {
 
 impl Runtime for Program {
     type F = Function;
-    fn run(&self, entry_point : &Self::F) {
+    fn run(&self, entry_point: &Self::F) {
         self.eval(entry_point, &[]);
-
     }
 }
 

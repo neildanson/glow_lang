@@ -1,4 +1,3 @@
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Values {
     Int(i32),
@@ -24,7 +23,6 @@ pub enum Types {
     Null,
     Undefined,*/
 }
-
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Instruction {

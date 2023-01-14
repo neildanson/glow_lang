@@ -1,5 +1,5 @@
-use crate::{*, interface::Compiler};
 use super::vm::*;
+use crate::{interface::Compiler, *};
 
 fn append(instructions: &mut Vec<Instruction>, instructions_to_add: &[Instruction]) {
     let base_offset = instructions.len();
@@ -148,7 +148,7 @@ struct StackVM;
 
 impl Compiler for StackVM {
     type F = vm::Function;
-    fn compile(f : ast::FunctionDef) -> Self::F {
+    fn compile(f: ast::FunctionDef) -> Self::F {
         emit_function(&f)
     }
 }
@@ -170,23 +170,23 @@ mod tests {
         assert_eq!(result, expected);
     }
 
-
     #[test]
     fn emit_add() {
         let expr = vec![
             Expr::Ident("x".to_string(), Box::new(Expr::Int(1))),
             Expr::Ident("y".to_string(), Box::new(Expr::Int(2))),
-            Expr::Add(Box::new(Expr::Symbol("x".to_string())), Box::new(Expr::Symbol("y".to_string())))
+            Expr::Add(
+                Box::new(Expr::Symbol("x".to_string())),
+                Box::new(Expr::Symbol("y".to_string())),
+            ),
         ];
         let result = emit_body(&expr);
 
         let expected = vec![
             Instruction::Push(Values::Int(1)),
             Instruction::StoreLocal("x".to_string()),
-
             Instruction::Push(Values::Int(2)),
             Instruction::StoreLocal("y".to_string()),
-
             Instruction::LoadLocal("x".to_string()),
             Instruction::LoadLocal("y".to_string()),
             Instruction::Add,

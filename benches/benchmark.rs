@@ -3,8 +3,8 @@ extern crate glow_lang;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::collections::HashMap;
 
-use glow_lang::*;
 use glow_lang::virtual_machine::stack::vm::*;
+use glow_lang::*;
 
 fn parse_success(c: &mut Criterion) {
     let any_number = any_of(&['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
@@ -90,5 +90,11 @@ fn stack_vm_loop(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, parse_success, parse_fail, stack_vm_addition, stack_vm_loop);
+criterion_group!(
+    benches,
+    parse_success,
+    parse_fail,
+    stack_vm_addition,
+    stack_vm_loop
+);
 criterion_main!(benches);

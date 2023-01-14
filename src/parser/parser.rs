@@ -365,7 +365,10 @@ pub fn pchar<'a>(c: char) -> RcParser<'a, char> {
 }
 
 pub fn pstring<'a>(string: String) -> RcParser<'a, String> {
-    StringParser { string : string.clone() }.to_rc()
+    StringParser {
+        string: string.clone(),
+    }
+    .to_rc()
 }
 
 pub fn choice<'a, Output: 'a>(parsers: Vec<RcParser<'a, Output>>) -> RcParser<'a, Output> {
@@ -405,7 +408,10 @@ mod tests {
     fn str_parse_with_remaining() {
         let parse_hello = pstring("hello".to_string());
         let result = parse_hello.parse("helloworld".to_string());
-        assert_eq!(result, Result::Ok(("hello".to_string(), "world".to_string())));
+        assert_eq!(
+            result,
+            Result::Ok(("hello".to_string(), "world".to_string()))
+        );
     }
 
     #[test]
@@ -500,7 +506,10 @@ mod tests {
 
         let result = stringified.parse("SomeValue A".to_string());
 
-        assert_eq!(result, Result::Ok(("SomeValue".to_string(), " A".to_string())));
+        assert_eq!(
+            result,
+            Result::Ok(("SomeValue".to_string(), " A".to_string()))
+        );
     }
 
     #[test]
