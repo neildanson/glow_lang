@@ -1,4 +1,5 @@
 pub mod stack;
+pub mod register;
 pub mod ast;
 pub mod interface;
 
