@@ -36,7 +36,7 @@ mod tests {
 
         let expected = vec![
             Instruction::StoreLocal(0, Values::Int(1)),
-            Instruction::StoreLocal(1, Values::Int(1)),
+            Instruction::StoreLocal(1, Values::Int(2)),
             Instruction::Add(0, 1),
         ];
 
