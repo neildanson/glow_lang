@@ -50,7 +50,7 @@ fn parse_fail(c: &mut Criterion) {
     });
 }
 
-fn vm_addition(c: &mut Criterion) {
+fn stack_vm_addition(c: &mut Criterion) {
     let mut instructions = vec![Instruction::Push(Values::Int(0))];
     for i in 0..1000 {
         instructions.push(Instruction::Push(Values::Int(i)));
@@ -67,7 +67,7 @@ fn vm_addition(c: &mut Criterion) {
     });
 }
 
-fn vm_loop(c: &mut Criterion) {
+fn stack_vm_loop(c: &mut Criterion) {
     let mut instructions = vec![];
     instructions.push(Instruction::Push(Values::Int(0)));
     instructions.push(Instruction::StoreLocal("Local".to_string())); // <- Load 0 into local
@@ -90,5 +90,5 @@ fn vm_loop(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, parse_success, parse_fail, vm_addition, vm_loop);
+criterion_group!(benches, parse_success, parse_fail, stack_vm_addition, stack_vm_loop);
 criterion_main!(benches);
