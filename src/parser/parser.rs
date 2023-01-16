@@ -140,8 +140,8 @@ impl<'a> Parser<'a> for CharParser {
                 Result::Ok((self.c, input[1..].to_string()))
             } else {
                 Result::Err(format!(
-                    "Expected {}, got {}. Remaining {}",
-                    self.c, head, input
+                    "Expected {}, got {head}. Remaining {input}",
+                    self.c
                 ))
             }
         }
@@ -159,7 +159,7 @@ struct StringParser {
 impl<'a> Parser<'a> for StringParser {
     type Output = String;
     fn parse(&self, input: String) -> ParseResult<String> {
-        if let Some(value) = input.strip_prefix(&self.string) {
+        if let Some(value) = input.strip_prefix(self.string) {
             Result::Ok((self.string.to_string(), value.to_string()))
         } else {
             Result::Err(format!("Expected {}", self.string))
@@ -194,10 +194,10 @@ impl<'a, Output1: 'a, Output2: 'a> Parser<'a> for AndThenParser<'a, Output1, Out
                         let x = (success1, success2);
                         Ok((x, remaining))
                     }
-                    Err(error) => Err(format!("Then 2nd : {}", error)),
+                    Err(error) => Err(format!("Then 2nd : {error}")),
                 }
             }
-            Err(error) => Err(format!("Then 1st : {}", error)),
+            Err(error) => Err(format!("Then 1st : {error}")),
         }
     }
 
@@ -248,7 +248,7 @@ where
                 let mapped = (self.f)(success);
                 Ok((mapped, remaining))
             }
-            Err(error) => Err(format!("MapParser : {}", error)),
+            Err(error) => Err(format!("MapParser : {error}")),
         }
     }
 

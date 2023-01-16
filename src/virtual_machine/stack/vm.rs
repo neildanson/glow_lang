@@ -284,7 +284,7 @@ impl Program {
                 }
                 Instruction::Call(name) if name == "print" => {
                     let value_to_print = stack_frame.stack.pop().unwrap();
-                    println!("{:?}", value_to_print);
+                    println!("{value_to_print:?}");
                     ip += 1;
                 }
 

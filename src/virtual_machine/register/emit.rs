@@ -34,7 +34,7 @@ pub fn emit(
 
             instructions.push(Instruction::StoreLocal(
                 index,
-                extract_value(&expr).unwrap(),
+                extract_value(expr).unwrap(),
             ));
         }
         Expr::Add(l, r) => {
