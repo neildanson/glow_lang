@@ -22,7 +22,7 @@ fn parse_success(c: &mut Criterion) {
     c.bench_function("Parse Success", |b| {
         b.iter(|| {
             for _ in 0..100 {
-                let _ = black_box(to_number.parse("-123456789".to_string()));
+                let _ = black_box(to_number.parse("-123456789"));
             }
         })
     });
@@ -44,7 +44,7 @@ fn parse_fail(c: &mut Criterion) {
     c.bench_function("Parse Fail", |b| {
         b.iter(|| {
             for _ in 0..100 {
-                let _ = black_box(to_number.parse("-12345678B".to_string()));
+                let _ = black_box(to_number.parse("-12345678B"));
             }
         })
     });

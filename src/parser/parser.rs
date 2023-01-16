@@ -4,7 +4,7 @@ type ParseResult<'a, Output> = Result<(Output, String), String>;
 
 pub trait Parser<'a> {
     type Output;
-    fn parse(&self, input: String) -> ParseResult<Self::Output>;
+    fn parse(&self, input: &str) -> ParseResult<Self::Output>;
     fn to_rc(self) -> RcParser<'a, Self::Output>;
 
     fn map<F: 'a, Out: 'a>(&self, f: F) -> RcParser<'a, Out>
@@ -115,7 +115,7 @@ pub type RcParser<'a, R> = Rc<dyn Parser<'a, Output = R> + 'a>;
 impl<'a, R> Parser<'a> for RcParser<'a, R> {
     type Output = R;
 
-    fn parse(&self, input: String) -> ParseResult<'a, R> {
+    fn parse(&self, input: &str) -> ParseResult<'a, R> {
         let parser = self.as_ref();
         parser.parse(input)
     }
@@ -131,7 +131,7 @@ struct CharParser {
 
 impl<'a> Parser<'a> for CharParser {
     type Output = char;
-    fn parse(&self, input: String) -> ParseResult<char> {
+    fn parse(&self, input: &str) -> ParseResult<char> {
         if input.is_empty() {
             Result::Err(format!("Empty String - expected {}", self.c))
         } else {
@@ -158,7 +158,7 @@ struct StringParser {
 
 impl<'a> Parser<'a> for StringParser {
     type Output = String;
-    fn parse(&self, input: String) -> ParseResult<String> {
+    fn parse(&self, input: &str) -> ParseResult<String> {
         if let Some(value) = input.strip_prefix(self.string) {
             Result::Ok((self.string.to_string(), value.to_string()))
         } else {
@@ -184,11 +184,11 @@ pub fn and_then<'a, Output1: 'a, Output2: 'a>(
 
 impl<'a, Output1: 'a, Output2: 'a> Parser<'a> for AndThenParser<'a, Output1, Output2> {
     type Output = (Output1, Output2);
-    fn parse(&self, input: String) -> ParseResult<(Output1, Output2)> {
+    fn parse(&self, input: &str) -> ParseResult<(Output1, Output2)> {
         let result1 = self.parser_a.parse(input);
         match result1 {
             Ok((success1, remaining)) => {
-                let result2 = self.parser_b.parse(remaining);
+                let result2 = self.parser_b.parse(remaining.as_str());
                 match result2 {
                     Ok((success2, remaining)) => {
                         let x = (success1, success2);
@@ -212,7 +212,7 @@ struct ChoiceParser<'a, Output> {
 
 impl<'a, Output: 'a> Parser<'a> for ChoiceParser<'a, Output> {
     type Output = Output;
-    fn parse(&self, input: String) -> ParseResult<Output> {
+    fn parse(&self, input: &str) -> ParseResult<Output> {
         for p in &self.parsers {
             let result = p.parse(input.clone());
             match result {
@@ -241,7 +241,7 @@ where
     F: Fn(Input) -> Output,
 {
     type Output = Output;
-    fn parse(&self, input: String) -> ParseResult<Output> {
+    fn parse(&self, input: &str) -> ParseResult<Output> {
         let result = self.parser.parse(input);
         match result {
             Ok((success, remaining)) => {
@@ -263,11 +263,11 @@ struct OptionParser<'a, Output> {
 
 impl<'a, Output: 'a> Parser<'a> for OptionParser<'a, Output> {
     type Output = Option<Output>;
-    fn parse(&self, input: String) -> ParseResult<Option<Output>> {
+    fn parse(&self, input: &str) -> ParseResult<Option<Output>> {
         let result1 = self.parser.parse(input.clone());
         match result1 {
             Ok((success, remaining)) => Result::Ok((Some(success), remaining)),
-            Err(_) => Result::Ok((None, input)),
+            Err(_) => Result::Ok((None, input.to_string())),
         }
     }
 
@@ -282,17 +282,17 @@ struct ManyParser<'a, Output> {
 
 impl<'a, Output: 'a> Parser<'a> for ManyParser<'a, Output> {
     type Output = Vec<Output>;
-    fn parse(&self, input: String) -> ParseResult<Vec<Output>> {
+    fn parse(&self, input: &str) -> ParseResult<Vec<Output>> {
         let mut result = self.parser.parse(input.clone());
         let mut values = Vec::new();
-        let mut outerremaining = input;
+        let mut outerremaining = input.to_string();
 
         while let Ok((success, remaining)) = result {
             values.push(success);
             outerremaining = remaining.clone();
-            result = self.parser.parse(remaining);
+            result = self.parser.parse(remaining.as_str());
         }
-        Result::Ok((values, outerremaining))
+        Result::Ok((values, outerremaining.to_string()))
     }
 
     fn to_rc(self) -> RcParser<'a, Self::Output> {
@@ -306,12 +306,12 @@ struct Many1Parser<'a, Output> {
 
 impl<'a, Output: 'a> Parser<'a> for Many1Parser<'a, Output> {
     type Output = Vec<Output>;
-    fn parse(&self, input: String) -> ParseResult<Vec<Output>> {
+    fn parse(&self, input: &str) -> ParseResult<Vec<Output>> {
         let result = self.parser.parse(input);
         let many_parser = self.parser.clone().many();
         match result {
             Ok((success, remaining)) => {
-                let (mut result, remain) = many_parser.parse(remaining).unwrap();
+                let (mut result, remain) = many_parser.parse(remaining.as_str()).unwrap();
                 result.insert(0, success);
                 Ok((result, remain))
             }
@@ -330,7 +330,7 @@ pub struct ForwardParser<'a, Output> {
 
 impl<'a, Output: 'a> Parser<'a> for ForwardParser<'a, Output> {
     type Output = Output;
-    fn parse(&self, input: String) -> ParseResult<Output> {
+    fn parse(&self, input: &str) -> ParseResult<Output> {
         let p = self.parser.as_ref();
         match p {
             Some(parser) => parser.parse(input),
@@ -386,28 +386,28 @@ mod tests {
     #[test]
     fn char_parse() {
         let parse_a = pchar('a');
-        let result = parse_a.parse("a".to_string());
+        let result = parse_a.parse("a");
         assert_eq!(result, Result::Ok(('a', "".to_string())));
     }
 
     #[test]
     fn char_parse_with_remaining() {
         let parse_a = pchar('a');
-        let result = parse_a.parse("ab".to_string());
+        let result = parse_a.parse("ab");
         assert_eq!(result, Result::Ok(('a', "b".to_string())));
     }
 
     #[test]
     fn str_parse() {
         let parse_hello = pstring("hello");
-        let result = parse_hello.parse("hello".to_string());
+        let result = parse_hello.parse("hello");
         assert_eq!(result, Result::Ok(("hello".to_string(), "".to_string())));
     }
 
     #[test]
     fn str_parse_with_remaining() {
         let parse_hello = pstring("hello");
-        let result = parse_hello.parse("helloworld".to_string());
+        let result = parse_hello.parse("helloworld");
         assert_eq!(
             result,
             Result::Ok(("hello".to_string(), "world".to_string()))
@@ -419,7 +419,7 @@ mod tests {
         let parse_a = pchar('a');
         let parse_b = pchar('b');
         let parser = parse_a.or(parse_b);
-        let result = parser.parse("a".to_string());
+        let result = parser.parse("a");
         assert_eq!(result, Result::Ok(('a', "".to_string())));
     }
 
@@ -428,7 +428,7 @@ mod tests {
         let parse_a = pchar('a');
         let parse_b = pchar('b');
         let parser = parse_a.or(parse_b);
-        let result = parser.parse("b".to_string());
+        let result = parser.parse("b");
         assert_eq!(result, Result::Ok(('b', "".to_string())));
     }
 
@@ -437,7 +437,7 @@ mod tests {
         let parse_a = pchar('a');
         let parse_b = pchar('b');
         let parser = and_then(parse_a, parse_b);
-        let result = parser.parse("ab".to_string());
+        let result = parser.parse("ab");
         assert_eq!(result, Result::Ok((('a', 'b'), "".to_string())));
     }
 
@@ -449,7 +449,7 @@ mod tests {
 
         let parsers = vec![parse_a, parse_b, parse_c];
         let choice_parser = choice(parsers);
-        let result = choice_parser.parse("c".to_string());
+        let result = choice_parser.parse("c");
         assert_eq!(result, Result::Ok(('c', "".to_string())));
     }
 
@@ -457,7 +457,7 @@ mod tests {
     fn any_of_test() {
         let parsers = vec!['1', '2', '3'];
         let choice_parser = any_of(&parsers);
-        let result = choice_parser.parse("3".to_string());
+        let result = choice_parser.parse("3");
         assert_eq!(result, Result::Ok(('3', "".to_string())));
     }
 
@@ -469,8 +469,8 @@ mod tests {
         let true_parser = true_parser.map(move |_| true);
         let false_parser = false_parser.map(move |_| false);
 
-        let true_result = true_parser.parse("t".to_string());
-        let false_result = false_parser.parse("f".to_string());
+        let true_result = true_parser.parse("t");
+        let false_result = false_parser.parse("f");
         assert_eq!(true_result, Result::Ok((true, "".to_string())));
         assert_eq!(false_result, Result::Ok((false, "".to_string())));
     }
@@ -479,7 +479,7 @@ mod tests {
     fn option_parser_test() {
         let true_parser = pchar('t');
         let true_option_parser = true_parser.optional();
-        let true_result = true_option_parser.parse("t".to_string());
+        let true_result = true_option_parser.parse("t");
 
         assert_eq!(true_result, Result::Ok((Some('t'), "".to_string())));
     }
@@ -488,7 +488,7 @@ mod tests {
     fn option_parser_test_negative() {
         let true_parser = pchar('t');
         let true_option_parser = true_parser.optional();
-        let true_result = true_option_parser.parse("-t".to_string());
+        let true_result = true_option_parser.parse("-t");
 
         assert_eq!(true_result, Result::Ok((None, "-t".to_string())));
     }
@@ -504,7 +504,7 @@ mod tests {
         let stringified: RcParser<String> =
             chars.map(move |value: Vec<char>| value.into_iter().collect());
 
-        let result = stringified.parse("SomeValue A".to_string());
+        let result = stringified.parse("SomeValue A");
 
         assert_eq!(
             result,
@@ -518,7 +518,7 @@ mod tests {
         let lparen = pchar('(');
         let rparen = pchar(')');
 
-        let result = foo.between(lparen, rparen).parse("(foo)".to_string());
+        let result = foo.between(lparen, rparen).parse("(foo)");
 
         assert_eq!(result, Result::Ok(("foo".to_string(), "".to_string())));
     }
