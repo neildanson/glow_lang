@@ -153,14 +153,14 @@ impl<'a> Parser<'a> for CharParser {
 }
 
 struct StringParser {
-    string: String,
+    string: &'static str,
 }
 
 impl<'a> Parser<'a> for StringParser {
     type Output = String;
     fn parse(&self, input: String) -> ParseResult<String> {
         if let Some(value) = input.strip_prefix(&self.string) {
-            Result::Ok((self.string.clone(), value.to_string()))
+            Result::Ok((self.string.to_string(), value.to_string()))
         } else {
             Result::Err(format!("Expected {}", self.string))
         }
@@ -364,9 +364,9 @@ pub fn pchar<'a>(c: char) -> RcParser<'a, char> {
     CharParser { c }.to_rc()
 }
 
-pub fn pstring<'a>(string: String) -> RcParser<'a, String> {
+pub fn pstring<'a>(string: &'static str) -> RcParser<'a, String> {
     StringParser {
-        string: string.clone(),
+        string,
     }
     .to_rc()
 }
@@ -399,14 +399,14 @@ mod tests {
 
     #[test]
     fn str_parse() {
-        let parse_hello = pstring("hello".to_string());
+        let parse_hello = pstring("hello");
         let result = parse_hello.parse("hello".to_string());
         assert_eq!(result, Result::Ok(("hello".to_string(), "".to_string())));
     }
 
     #[test]
     fn str_parse_with_remaining() {
-        let parse_hello = pstring("hello".to_string());
+        let parse_hello = pstring("hello");
         let result = parse_hello.parse("helloworld".to_string());
         assert_eq!(
             result,
@@ -514,7 +514,7 @@ mod tests {
 
     #[test]
     fn between_test() {
-        let foo = pstring("foo".to_string());
+        let foo = pstring("foo");
         let lparen = pchar('(');
         let rparen = pchar(')');
 
